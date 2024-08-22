@@ -1,3 +1,18 @@
+import subprocess
+import sys
+
+
+def install_requirements():
+    required_packages = ['numpy', 'opencv-python', 'dlib']
+    for package in required_packages:
+        try:
+            __import__(package)
+        except ImportError:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
+
+
+install_requirements()
+
 import cv2
 import time
 import numpy as np
@@ -23,7 +38,7 @@ def calculate_ear(eye):
 def is_looking_at_camera(left_eye, right_eye):
     left_ear = calculate_ear(left_eye)
     right_ear = calculate_ear(right_eye)
-    threshold = 0.3
+    threshold = 0.33
     average_ear = (left_ear + right_ear) / 2
     return average_ear > threshold
 
@@ -34,6 +49,7 @@ def main():
     start_time = time.time()
     last_prediction = ""
     last_looking_status = ""
+
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -43,9 +59,12 @@ def main():
         faces = frontal_face_detector(gray)
 
         if not faces:
-            last_looking_status = "Rosto não detectado"
-            continue
-        for face in faces:
+            cv2.putText(frame, "Rosto nao detectado", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2,
+                        cv2.LINE_AA)
+        else:
+            faces = sorted(faces, key=lambda face: (face.right() - face.left()) * (face.bottom() - face.top()),
+                           reverse=True)
+            face = faces[0]
             h, w = frame.shape[:2]
 
             x1 = max(0, face.left() - 10)
@@ -62,8 +81,8 @@ def main():
             landmarks = np.array([[p.x, p.y] for p in shape.parts()])
             left_eye = landmarks[36:42]
             right_eye = landmarks[42:48]
-            looking_at_camera = is_looking_at_camera(left_eye, right_eye)
-            last_looking_status = "Olhando para Camera" if looking_at_camera else "Nao Olhando para Camera"
+            looking_at_camera, average_ear = is_looking_at_camera(left_eye, right_eye)
+            last_looking_status = f"Olhando para Camera" if looking_at_camera else f"Nao Olhando para Camera"
             elapsed_time = time.time() - start_time
 
             if elapsed_time >= 5 and looking_at_camera:
