@@ -29,7 +29,7 @@ def is_looking_at_camera(left_eye, right_eye):
 
 
 def main():
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
 
     start_time = time.time()
     last_prediction = ""
