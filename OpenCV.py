@@ -1,18 +1,3 @@
-import subprocess
-import sys
-
-
-def install_requirements():
-    required_packages = ['numpy', 'opencv-python', 'dlib']
-    for package in required_packages:
-        try:
-            __import__(package)
-        except ImportError:
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
-
-
-install_requirements()
-
 import cv2
 import time
 import numpy as np
@@ -81,7 +66,7 @@ def main():
             landmarks = np.array([[p.x, p.y] for p in shape.parts()])
             left_eye = landmarks[36:42]
             right_eye = landmarks[42:48]
-            looking_at_camera, average_ear = is_looking_at_camera(left_eye, right_eye)
+            looking_at_camera = is_looking_at_camera(left_eye, right_eye)
             last_looking_status = f"Olhando para Camera" if looking_at_camera else f"Nao Olhando para Camera"
             elapsed_time = time.time() - start_time
 
